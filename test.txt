@@ -1,3 +1,7 @@
 Denne fila har jeg laget.
 Du kan gjerne prøve å endre den.
 -Arne
+
+OI! Har du lagd denne .txt-fila? Du er flink!
+Jeg har nå endret den
+-Anders
