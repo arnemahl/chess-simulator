@@ -15,6 +15,7 @@ public abstract class BoardPiece {
 	public BoardPiece(Color color, Board board) {
 		this.color = color;
 		this.board = board;
+		System.out.println("Initializing with color: "+color.toString());
 	}
 
 	public BoardPiece(Color color, Board board, Square square) {
@@ -59,6 +60,27 @@ public abstract class BoardPiece {
 	// This will check without performing the move
 	public abstract boolean CanMoveTo(Square square);
 
+	// This will check if the piece can move at all
+	public boolean CanMove() {
+		Square loc = this.location;
+		Square tmpSquare = this.location;
+		BoardPiece tmpPiece = this;
+		for (int i = 0; i < 8; i++) {
+			while (tmpSquare.GetNeighbor(i) != null) {
+				tmpSquare = tmpSquare.GetNeighbor(i);
+				tmpPiece = tmpSquare.Contains();
+
+				if (this.MoveTo(tmpSquare)) {
+					this.MoveTo(loc);
+					if (tmpPiece != null)
+						tmpPiece.MoveTo(tmpSquare);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	/* Some getters */
 	public Color GetColor() {
 		return color;
@@ -66,12 +88,6 @@ public abstract class BoardPiece {
 
 	public Square GetLocation() {
 		return location;
-	}
-
-	// Will notify the piece that it has been taken
-	public void IsTaken() {
-		location = null;
-		board.Taken(this);
 	}
 
 	public String toString() {

@@ -50,12 +50,12 @@ public class Square {
 		return this.y;
 	}
 
-	public void MoveInto(BoardPiece bp) {
+	/*public void MoveInto(BoardPiece bp) {
 		if (this.Contains() != null) {
 			piece.IsTaken();
 		}
 		this.piece = bp;
-	}
+	}*/
 	public Square GetNeighbor(int i){
 		if(i>=0||i<8)
 			return neighbors[i];

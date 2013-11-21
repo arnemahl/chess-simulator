@@ -28,6 +28,8 @@ public class Pawn extends BoardPiece {
 			if (x2 == x) {
 				if (y == 6 && y2 < 6 && y2 > 3)
 					return true;
+				else if(y2==y-1)
+					return true;
 			} else if (y2 == y - 1 && Math.abs(x2 - x) == 1) {
 				if (square.Contains() != null) {
 					if (square.Contains().GetColor() != this.color)
@@ -37,6 +39,8 @@ public class Pawn extends BoardPiece {
 		} else if (this.color == BoardPiece.Color.black) {
 			if (x2 == x) {
 				if (y == 1 && y2 < 4 && y2 > 1)
+					return true;
+				else if(y2==y+1)
 					return true;
 			} else if (y2 == y + 1 && Math.abs(x2 - x) == 1) {
 				if (square.Contains() != null) {

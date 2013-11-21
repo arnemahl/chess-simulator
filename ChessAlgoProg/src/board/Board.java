@@ -1,7 +1,5 @@
 package board;
 
-import java.util.ArrayList;
-
 import pieces.Bishop;
 import pieces.BoardPiece;
 import pieces.King;
@@ -9,19 +7,23 @@ import pieces.Knight;
 import pieces.Pawn;
 import pieces.Queen;
 import pieces.Rook;
+import view.ViewBoard;
 import algorithm.Code;
 
 public class Board {
 	// The squares are stored in a matrix where 0,0 is the UPPER LEFT square of
 	// the board. This is the a8 position in chess
 	private Square[][] squares;
-	// The board will know what pieces have been taken
-	private ArrayList<BoardPiece> takenWhite;
-	private ArrayList<BoardPiece> takenBlack;
+	private ViewBoard viewBoard;
+
+	private boolean inPlay;
+	private BoardPiece.Color player;
+	private BoardPiece.Color winner;
 
 	public Board() {
-		takenWhite = new ArrayList<BoardPiece>();
-		takenBlack = new ArrayList<BoardPiece>();
+		player = BoardPiece.Color.white;
+		winner = null;
+		inPlay = false;
 
 		// Initialize all the squares 8*8
 		squares = new Square[8][8];
@@ -50,8 +52,10 @@ public class Board {
 	// This will initialize a new board and place the pieces on the correct
 	// location on the board
 	public void InitBoard() {
-		takenWhite = new ArrayList<BoardPiece>();
-		takenBlack = new ArrayList<BoardPiece>();
+		viewBoard.InitBoard();
+		player = BoardPiece.Color.white;
+		winner = null;
+		inPlay = true;
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 8; j++) {
 				squares[i][j].PlacePiece(null);
@@ -142,31 +146,154 @@ public class Board {
 	// the move is good
 	public boolean Move(Code code) {
 		if (code.ValidCode()) {
-			return Move(code.GetCoordinates());
+			if (Move(code.GetCoordinates())) {
+				System.out.println("Seems good");
+				this.NextPlayer();
+				return true;
+			}
 		}
 		return false;
+	}
+
+	// Setting the viewBoard
+	public void SetViewBoard(ViewBoard vb) {
+		this.viewBoard = vb;
 	}
 
 	// Used to move the pieces. Takes an int array as input. Returns true if the
 	// move is good
 	private boolean Move(int[] move) {
-		if(this.squares[move[0]][move[1]].Contains()==null)
+		
+		boolean retVal = false;
+		if (this.squares[move[0]][move[1]].Contains() == null)
 			return false;
-		return this.squares[move[0]][move[1]].Contains().MoveTo(
+		if (this.player != squares[move[0]][move[1]].Contains().GetColor()){
+			return false;
+		}
+		retVal = this.squares[move[0]][move[1]].Contains().MoveTo(
 				this.squares[move[2]][move[3]]);
+		if (retVal) {
+			this.CheckBoard();
+		}
+		return retVal;
 	}
 
-	// This method is called by the pieces when they are taken so the board can
-	// be updated
-	public void Taken(BoardPiece bp) {
-		if (bp.GetColor() == BoardPiece.Color.white) {
-			takenWhite.add(bp);
-		} else if (bp.GetColor() == BoardPiece.Color.black) {
-			takenBlack.add(bp);
+	/*
+	 * This method will run after every move and it will do the following
+	 * things; (1)Change all pawns that crossed the borders to Queens (2)Check
+	 * if the kings are checked (3)Check if any of the kings are check mated
+	 * thus ending the game (4)Check if the next person to make a move can
+	 * perform a move or not
+	 */
+
+	public void CheckBoard() {
+		// First check if a pawn is across the border
+		// If yes, turn it into a Queen (no option will be given)
+		for (int i = 0; i < 8; i++) {
+			if (squares[i][0].Contains() != null) {
+				if (squares[i][0].Contains().toString().equals("wp")) {
+					squares[i][0].PlacePiece(new Queen(BoardPiece.Color.white,
+							this, squares[i][0]));
+				}
+			}
+			if (squares[i][7].Contains() != null) {
+				if (squares[i][7].Contains().toString().equals("bp")) {
+					squares[i][7].PlacePiece(new Queen(BoardPiece.Color.black,
+							this, squares[i][7]));
+				}
+			}
+		}
+
+		int ki = -1, kj = -1;
+		boolean winner = true;
+		// Then check if it is check mate for the person that is about to move
+		// First we locate the king
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 8; j++) {
+				if (squares[i][j].Contains() != null) {
+					if (player == BoardPiece.Color.white) {
+						if (squares[i][j].Contains().toString().equals("wK")) {
+							ki = i;
+							kj = j;
+						}
+					}
+					if (player == BoardPiece.Color.black) {
+						if (squares[i][j].Contains().toString().equals("bK")) {
+							ki = i;
+							kj = j;
+						}
+					}
+				}
+			}
+		}
+		BoardPiece king = squares[ki][kj].Contains();
+		// Then check if the player is checked
+		if (this.IsCheck(player)) {
+			// Then by performing all possible moves with the king and see
+			// if it is still checked
+			for (int i = 0; i < 8; i++) {
+				if (king.GetLocation().GetNeighbor(i) != null) {
+					if (king.CanMoveTo(king.GetLocation().GetNeighbor(i))) {
+						winner = false;
+					}
+				}
+			}
+			// Then check if there is any valid move with any piece of this
+			// color
+			for (int i = 0; i < 8; i++) {
+				for (int j = 0; j < 8; j++) {
+					if (squares[i][j].Contains() != null) {
+						if (squares[i][j].Contains().GetColor() == player) {
+							if (squares[i][j].Contains().CanMove())
+								winner = false;
+						}
+					}
+				}
+			}
+			// If we could not find a valid move for player we have a winner
+			if (winner) {
+				if (player == BoardPiece.Color.white)
+					this.winner = BoardPiece.Color.black;
+				else
+					this.winner = BoardPiece.Color.white;
+				this.inPlay = false;
+				return;
+			}
+			// If we did not find a winner, lets check if it is draw
+			boolean draw = true;
+			if (!this.IsCheck(player)) {
+				// We already have the location of the king, we now check the
+				// exact same things, but this time our prior knowledge is that
+				// the king is not checked
+				for (int i = 0; i < 8; i++) {
+					if (king.GetLocation().GetNeighbor(i) != null) {
+						if (king.CanMoveTo(king.GetLocation().GetNeighbor(i))) {
+							draw = false;
+						}
+					}
+				}
+				// Then check if there is any valid move with any piece of this
+				// color
+				for (int i = 0; i < 8; i++) {
+					for (int j = 0; j < 8; j++) {
+						if (squares[i][j].Contains() != null) {
+							if (squares[i][j].Contains().GetColor() == player) {
+								if (squares[i][j].Contains().CanMove())
+									draw = false;
+							}
+						}
+					}
+				}
+			}
+			if (draw) {
+				this.inPlay = false;
+				this.winner = null;
+				return;
+			}
 		}
 	}
 
-	// Checks if the gicen colors king is threathened
+	// Checks if the given colors king is threatened
 	public boolean IsCheck(BoardPiece.Color color) {
 		// first locate the king
 		int ki = 0;
@@ -202,5 +329,16 @@ public class Board {
 			}
 		}
 		return false;
+	}
+
+	public BoardPiece.Color GetPlayer() {
+		return player;
+	}
+
+	public void NextPlayer() {
+		if (player == BoardPiece.Color.white)
+			player = BoardPiece.Color.black;
+		else
+			player = BoardPiece.Color.white;
 	}
 }
