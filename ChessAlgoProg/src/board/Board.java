@@ -1,5 +1,7 @@
 package board;
 
+import java.util.ArrayList;
+
 import pieces.Bishop;
 import pieces.BoardPiece;
 import pieces.King;
@@ -15,12 +17,14 @@ public class Board {
 	// the board. This is the a8 position in chess
 	private Square[][] squares;
 	private ViewBoard viewBoard;
+	private ArrayList<Code> moves;
 
 	private boolean inPlay;
 	private BoardPiece.Color player;
 	private BoardPiece.Color winner;
 
 	public Board() {
+		moves = new ArrayList<Code>();
 		player = BoardPiece.Color.white;
 		winner = null;
 		inPlay = false;
@@ -52,6 +56,7 @@ public class Board {
 	// This will initialize a new board and place the pieces on the correct
 	// location on the board
 	public void InitBoard() {
+		moves.clear();
 		player = BoardPiece.Color.white;
 		winner = null;
 		inPlay = true;
@@ -147,7 +152,15 @@ public class Board {
 	public boolean Move(Code code) {
 		if (code.ValidCode()) {
 			if (Move(code.GetCoordinates())) {
+				moves.add(code);
 				this.NextPlayer();
+				Code prev = null;
+				Code now = null;
+				if (moves.size() > 1)
+					prev = moves.get(moves.size() - 2);
+				if (moves.size() > 0)
+					now = moves.get(moves.size() - 1);
+				viewBoard.HighLight(now, prev);
 				return true;
 			}
 		}
@@ -242,12 +255,13 @@ public class Board {
 			// color
 			for (int i = 0; i < 8; i++) {
 				for (int j = 0; j < 8; j++) {
-					if (squares[i][j].Contains() != null) {
-						if (squares[i][j].Contains().GetColor() == player) {
-							if (squares[i][j].Contains().CanMove())
-								winner = false;
+					if (i != ki || j != kj)
+						if (squares[i][j].Contains() != null) {
+							if (squares[i][j].Contains().GetColor() == player) {
+								if (squares[i][j].Contains().CanMove())
+									winner = false;
+							}
 						}
-					}
 				}
 			}
 			// If we could not find a valid move for player we have a winner

@@ -69,9 +69,10 @@ public abstract class BoardPiece {
 	public boolean CanMove() {
 		for (int i = 0; i < 8; i++)
 			for (int j = 0; j < 8; j++)
-				if (i != this.location.GetX() && j != this.location.GetY())
+				if (i != this.location.GetX() || j != this.location.GetY())
 					if (this.CanMoveTo(board.GetSquare(i, j)))
 						return true;
+
 		return false;
 	}
 

@@ -77,6 +77,8 @@ public class King extends BoardPiece {
 			return this.CheckMoveForCheck(square);
 		}
 		// Rocade
+		if(this.HasMoved())
+			return false;
 		if (board.IsCheck(this.color))
 			return false;
 		if (!this.hasMoved) {

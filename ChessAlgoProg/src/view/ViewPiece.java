@@ -14,8 +14,10 @@ public class ViewPiece extends JPanel {
 	private static final long serialVersionUID = 6559921411353403213L;
 	protected BufferedImage image;
 	protected Color bcgColor;
+	protected boolean highLight;
 
 	public ViewPiece(String path) {
+		highLight = false;
 		try {
 			image = ImageIO.read(new File(path));
 		} catch (IOException ex) {
@@ -24,9 +26,13 @@ public class ViewPiece extends JPanel {
 		}
 		this.repaint();
 	}
-	
-	public void SetBackgroundColor(Color color){
+
+	public void SetBackgroundColor(Color color) {
 		this.bcgColor = color;
+	}
+
+	public void HighLight(boolean bool) {
+		highLight = bool;
 	}
 
 	public BufferedImage GetImage() {
@@ -36,7 +42,12 @@ public class ViewPiece extends JPanel {
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		g.drawImage(image.getScaledInstance(this.getWidth(), this.getHeight(), Image.SCALE_SMOOTH),0,0, null);
+		g.drawImage(image.getScaledInstance(this.getWidth(), this.getHeight(),
+				Image.SCALE_SMOOTH), 0, 0, null);
 		this.setBackground(bcgColor);
+		if(this.highLight){
+			g.setColor(Color.BLUE);
+			g.drawRect(1, 1, this.getWidth() - 3, this.getHeight() - 3);
+		}
 	}
 }

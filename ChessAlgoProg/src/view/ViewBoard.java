@@ -32,7 +32,7 @@ public class ViewBoard extends JPanel {
 				if ((i + j) % 2 == 0) {
 					squares[j][i].setBackground(new Color(246, 210, 170));
 				} else {
-					squares[j][i].setBackground(new Color(71, 32, 15));
+					squares[j][i].setBackground(new Color(55, 45, 28));
 				}
 				this.add(squares[j][i]);
 			}
@@ -86,7 +86,7 @@ public class ViewBoard extends JPanel {
 	}
 
 	public void Move(int coordinates[]) {
-		if(clickedPanel!=null)
+		if (clickedPanel != null)
 			clickedPanel.SetClicked(false);
 		squares[coordinates[2]][coordinates[3]]
 				.SetContent(squares[coordinates[0]][coordinates[1]].Contains());
@@ -97,8 +97,8 @@ public class ViewBoard extends JPanel {
 
 	public void SetClicked(boolean click) {
 		hasClicked = click;
-		if(!click){
-			if(clickedPanel!=null){
+		if (!click) {
+			if (clickedPanel != null) {
 				clickedPanel.SetClicked(false);
 			}
 		}
@@ -111,8 +111,22 @@ public class ViewBoard extends JPanel {
 	public void SetClickedSquare(ViewSquare vs) {
 		clickedPanel = vs;
 	}
-	public Board GetBoard(){
+
+	public Board GetBoard() {
 		return board;
+	}
+
+	public void HighLight(Code now, Code prev) {
+		if (prev != null) {
+			int prevCoor[] = prev.GetCoordinates();
+			squares[prevCoor[0]][prevCoor[1]].HighLight(false);
+			squares[prevCoor[2]][prevCoor[3]].HighLight(false);
+		}
+		if (now != null) {
+			int nowCoor[] = now.GetCoordinates();
+			squares[nowCoor[0]][nowCoor[1]].HighLight(true);
+			squares[nowCoor[2]][nowCoor[3]].HighLight(true);
+		}
 	}
 
 	public void TryToMove(ViewSquare vs) {
@@ -134,8 +148,9 @@ public class ViewBoard extends JPanel {
 	}
 
 	public void MakeQueen(int x, int y) {
-		if (squares[x][y].Contains() == null){
-			return;}
+		if (squares[x][y].Contains() == null) {
+			return;
+		}
 		System.out.println("Will make queen!");
 		if (y == 0)
 			squares[x][y].SetContent(new ViewPiece("bin/Resources/wQ.png"));

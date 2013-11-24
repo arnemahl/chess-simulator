@@ -18,16 +18,18 @@ public class ViewSquare extends JPanel implements MouseListener {
 	private int[] coordinates;
 	private Square square;
 	private boolean clicked;
+	private boolean highLight;
 
 	public ViewSquare(ViewBoard vb, int x, int y) {
 		super(new BorderLayout());
 		clicked = false;
+		highLight = false;
 		this.viewBoard = vb;
 		coordinates = new int[2];
 		coordinates[0] = x;
 		coordinates[1] = y;
-		square = viewBoard.GetBoard().GetSquare(x,y);
-		
+		square = viewBoard.GetBoard().GetSquare(x, y);
+
 		this.addMouseListener(this);
 	}
 
@@ -39,6 +41,16 @@ public class ViewSquare extends JPanel implements MouseListener {
 				this.add(contains);
 			this.repaint();
 		}
+	}
+
+	public void HighLight(boolean bool) {
+		this.highLight = bool;
+		if (this.contains != null)
+			this.contains.HighLight(bool);
+		this.removeAll();
+		if (this.contains != null)
+			this.add(this.contains);
+		this.repaint();
 	}
 
 	public ViewPiece Contains() {
@@ -65,6 +77,10 @@ public class ViewSquare extends JPanel implements MouseListener {
 		if (contains != null) {
 			contains.setBackground(this.getBackground());
 		}
+		if (this.highLight) {
+			g.setColor(Color.BLUE);
+			g.drawRect(1, 1, this.getWidth() - 3, this.getHeight() - 3);
+		}
 		if (this.clicked) {
 			g.setColor(Color.yellow);
 			g.drawRect(1, 1, this.getWidth() - 3, this.getHeight() - 3);
@@ -72,28 +88,37 @@ public class ViewSquare extends JPanel implements MouseListener {
 	}
 
 	@Override
-	public void mouseEntered(MouseEvent arg0) {
+	public void mouseEntered(MouseEvent me) {
 	}
 
 	@Override
-	public void mouseExited(MouseEvent arg0) {
+	public void mouseExited(MouseEvent me) {
 	}
 
 	@Override
-	public void mousePressed(MouseEvent arg0) {
+	public void mousePressed(MouseEvent me) {
+		//this.PerformeMouseClick(me);
 	}
 
 	@Override
-	public void mouseReleased(MouseEvent arg0) {
+	public void mouseReleased(MouseEvent me) {
+		this.PerformeMouseClick(me);
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent me) {
-		if(!viewBoard.IsClicked())
-			if(square.Contains()!=null)
-				if(square.Contains().GetColor()!=viewBoard.GetBoard().GetPlayer())
+		//this.PerformeMouseClick(me);
+	}
+
+	protected void PerformeMouseClick(MouseEvent me) {
+		if (!viewBoard.IsClicked())
+			if (square.Contains() != null) {
+				if (square.Contains().GetColor() != viewBoard.GetBoard()
+						.GetPlayer())
 					return;
-		
+				if (!square.Contains().CanMove())
+					return;
+			}
 
 		if (!viewBoard.IsClicked()) { // clicked first
 			if (this.contains == null)
@@ -106,7 +131,6 @@ public class ViewSquare extends JPanel implements MouseListener {
 		} else { // clicked second
 			viewBoard.TryToMove(this);
 			viewBoard.SetClicked(false);
-
 		}
 	}
 }
