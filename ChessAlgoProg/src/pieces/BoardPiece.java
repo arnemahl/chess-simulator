@@ -4,90 +4,92 @@ import board.Board;
 import board.Square;
 
 public abstract class BoardPiece {
+	// A BoardPiece can have two colors
 	public enum Color {
 		black, white
 	};
 
 	protected Board board;
-	protected Color color;
 	protected Square location;
+	protected Color color;
+	protected boolean hasMoved;
 
 	public BoardPiece(Color color, Board board) {
 		this.color = color;
 		this.board = board;
-		System.out.println("Initializing with color: "+color.toString());
+		hasMoved = false;
 	}
 
 	public BoardPiece(Color color, Board board, Square square) {
 		this.color = color;
 		this.board = board;
 		this.location = square;
+		hasMoved = false;
 	}
 
-	// Will place the piece to this square if it is unoccupied or have a
-	// different color
-	protected boolean PlaceTo(Square square) {
-		BoardPiece tmpPiece = square.Contains();
-		Square tmpSquare = this.location;
-		// If the piece has the same color, this move is invalid
-		if (tmpPiece != null)
-			if (tmpPiece.GetColor() == this.GetColor())
-				return false;
-
-		location.PlacePiece(null);
+	// This method will strictly place the piece to the square without
+	// performing any checking.
+	protected void PlaceTo(Square square) {
+		this.location.PlacePiece(null);
 		square.PlacePiece(this);
 		this.location = square;
-
-		if (board.IsCheck(this.color)) {
-			square.PlacePiece(tmpPiece);
-			tmpSquare.PlacePiece(this);
-			this.location = tmpSquare;
-			return false;
-		}
-		return true;
 	}
 
-	// Piece will be responsible to check if it can move to this location, and
-	// move if it can. Otherwise return false
-	// This method must be overwritten by all the different piece classes as
-	// they move differently
+	// This method will check if the move causes check, then reverse the move
+	protected boolean CheckMoveForCheck(Square square) {
+		boolean retVal = false;
+		BoardPiece tmpPiece = square.Contains();
+		Square tmpSquare = this.location;
+		this.PlaceTo(square);
+		retVal = !board.IsCheck(this.color);
+
+		this.PlaceTo(tmpSquare);
+		if (tmpPiece != null)
+			tmpPiece.PlaceTo(square);
+
+		return retVal;
+	}
+
+	// If piece is asked to move to a square, it will first check if it can
+	// move, and place itself in the square if it can
 	public boolean MoveTo(Square square) {
-		if (this.CanMoveTo(square))
-			return this.PlaceTo(square);
+		if (this.CanMoveTo(square)) {
+			this.PlaceTo(square);
+			this.hasMoved = true;
+			return true;
+		}
 		return false;
 	}
 
-	// This will check without performing the move
+	// This will check if this piece can move to the given square
 	public abstract boolean CanMoveTo(Square square);
 
-	// This will check if the piece can move at all
+	// This will check if the piece can move at all by performing a series of
+	// CanMoveTo operations
 	public boolean CanMove() {
-		Square loc = this.location;
-		Square tmpSquare = this.location;
-		BoardPiece tmpPiece = this;
-		for (int i = 0; i < 8; i++) {
-			while (tmpSquare.GetNeighbor(i) != null) {
-				tmpSquare = tmpSquare.GetNeighbor(i);
-				tmpPiece = tmpSquare.Contains();
-
-				if (this.MoveTo(tmpSquare)) {
-					this.MoveTo(loc);
-					if (tmpPiece != null)
-						tmpPiece.MoveTo(tmpSquare);
-					return true;
-				}
-			}
-		}
+		for (int i = 0; i < 8; i++)
+			for (int j = 0; j < 8; j++)
+				if (i != this.location.GetX() && j != this.location.GetY())
+					if (this.CanMoveTo(board.GetSquare(i, j)))
+						return true;
 		return false;
 	}
 
-	/* Some getters */
+	/* Some getters and setters */
 	public Color GetColor() {
 		return color;
 	}
 
 	public Square GetLocation() {
 		return location;
+	}
+
+	public void HasMoved(boolean bool) {
+		hasMoved = bool;
+	}
+
+	public boolean HasMoved() {
+		return hasMoved;
 	}
 
 	public String toString() {

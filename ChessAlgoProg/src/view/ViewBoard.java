@@ -2,20 +2,18 @@ package view;
 
 import java.awt.Color;
 import java.awt.GridLayout;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 import javax.swing.JPanel;
 
 import algorithm.Code;
 import board.Board;
 
-public class ViewBoard extends JPanel implements MouseListener {
+public class ViewBoard extends JPanel {
 	private static final long serialVersionUID = -1848722005310418932L;
 
 	private ViewSquare squares[][];
 	private Board board;
-	private boolean hasclicked1 = false;
+	private boolean hasClicked = false;
 	private ViewSquare clickedPanel = null;
 
 	public ViewBoard(Board board) {
@@ -88,64 +86,61 @@ public class ViewBoard extends JPanel implements MouseListener {
 	}
 
 	public void Move(int coordinates[]) {
+		if(clickedPanel!=null)
+			clickedPanel.SetClicked(false);
 		squares[coordinates[2]][coordinates[3]]
 				.SetContent(squares[coordinates[0]][coordinates[1]].Contains());
 		squares[coordinates[0]][coordinates[1]].SetContent(null);
-		this.invalidate();
 		this.repaint();
+		board.CheckBoard();
 	}
 
-	@Override
-	public void mouseEntered(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseExited(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mousePressed(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseClicked(MouseEvent me) {
-		System.out.println("Clicked mouse");
-		if (!hasclicked1) { // clicked first pic
-			hasclicked1 = true;
-			clickedPanel = (ViewSquare) me.getSource();
-			System.out.println("hasclicked1 = " + hasclicked1);
-		} else { // clicked second pic
-			hasclicked1 = false;
-			int coordinates[] = new int[4];
-			int from[] = clickedPanel.GetCoordinates();
-			ViewSquare tmp = (ViewSquare) me.getSource();
-			int to[] = tmp.GetCoordinates();
-			String s = from[0] + "," + from[1] + "x" + to[0] + "," + to[1];
-			Code c = new Code(s);
-			coordinates[0] = from[0];
-			coordinates[1] = from[1];
-			coordinates[2] = to[0];
-			coordinates[3] = to[1];
-			if (board.Move(c)) {
-				System.out.println("Lets make a move");
-				System.out.println(coordinates[0] + " " + coordinates[1] + " "
-						+ coordinates[2] + " " + coordinates[3]);
-				this.Move(coordinates);
-				board.PrintBoard();
+	public void SetClicked(boolean click) {
+		hasClicked = click;
+		if(!click){
+			if(clickedPanel!=null){
+				clickedPanel.SetClicked(false);
 			}
 		}
 	}
 
+	public boolean IsClicked() {
+		return hasClicked;
+	}
+
+	public void SetClickedSquare(ViewSquare vs) {
+		clickedPanel = vs;
+	}
+	public Board GetBoard(){
+		return board;
+	}
+
+	public void TryToMove(ViewSquare vs) {
+		int coordinates[] = new int[4];
+		if (clickedPanel.Contains() == null)
+			return;
+		int from[] = clickedPanel.GetCoordinates();
+		int to[] = vs.GetCoordinates();
+		String s = from[0] + "," + from[1] + "x" + to[0] + "," + to[1];
+		Code c = new Code(s);
+		coordinates[0] = from[0];
+		coordinates[1] = from[1];
+		coordinates[2] = to[0];
+		coordinates[3] = to[1];
+		if (board.Move(c)) {
+			this.Move(coordinates);
+			board.PrintBoard();
+		}
+	}
+
+	public void MakeQueen(int x, int y) {
+		if (squares[x][y].Contains() == null){
+			return;}
+		System.out.println("Will make queen!");
+		if (y == 0)
+			squares[x][y].SetContent(new ViewPiece("bin/Resources/wQ.png"));
+		if (y == 7)
+			squares[x][y].SetContent(new ViewPiece("bin/Resources/bQ.png"));
+		squares[x][y].Contains().repaint();
+	}
 }

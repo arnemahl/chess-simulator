@@ -52,7 +52,6 @@ public class Board {
 	// This will initialize a new board and place the pieces on the correct
 	// location on the board
 	public void InitBoard() {
-		viewBoard.InitBoard();
 		player = BoardPiece.Color.white;
 		winner = null;
 		inPlay = true;
@@ -100,7 +99,8 @@ public class Board {
 		for (int i = 0; i < 8; i++)
 			squares[i][6].PlacePiece(new Pawn(BoardPiece.Color.white, this,
 					squares[i][6]));
-
+		player = BoardPiece.Color.white;
+		viewBoard.InitBoard();
 	}
 
 	// Used to check the program. This will print out the board
@@ -147,7 +147,6 @@ public class Board {
 	public boolean Move(Code code) {
 		if (code.ValidCode()) {
 			if (Move(code.GetCoordinates())) {
-				System.out.println("Seems good");
 				this.NextPlayer();
 				return true;
 			}
@@ -163,19 +162,18 @@ public class Board {
 	// Used to move the pieces. Takes an int array as input. Returns true if the
 	// move is good
 	private boolean Move(int[] move) {
-		
-		boolean retVal = false;
 		if (this.squares[move[0]][move[1]].Contains() == null)
 			return false;
-		if (this.player != squares[move[0]][move[1]].Contains().GetColor()){
+		if (this.player != squares[move[0]][move[1]].Contains().GetColor()) {
 			return false;
 		}
-		retVal = this.squares[move[0]][move[1]].Contains().MoveTo(
+		return this.squares[move[0]][move[1]].Contains().MoveTo(
 				this.squares[move[2]][move[3]]);
-		if (retVal) {
-			this.CheckBoard();
-		}
-		return retVal;
+	}
+
+	// Return the square at the location
+	public Square GetSquare(int x, int y) {
+		return squares[x][y];
 	}
 
 	/*
@@ -194,12 +192,14 @@ public class Board {
 				if (squares[i][0].Contains().toString().equals("wp")) {
 					squares[i][0].PlacePiece(new Queen(BoardPiece.Color.white,
 							this, squares[i][0]));
+					viewBoard.MakeQueen(i, 0);
 				}
 			}
 			if (squares[i][7].Contains() != null) {
 				if (squares[i][7].Contains().toString().equals("bp")) {
 					squares[i][7].PlacePiece(new Queen(BoardPiece.Color.black,
 							this, squares[i][7]));
+					viewBoard.MakeQueen(i, 7);
 				}
 			}
 		}
@@ -316,19 +316,41 @@ public class Board {
 			}
 		}
 
-		// Then go through all squares and check if the piece there can move to
-		// the kings square (but only if the piece is of different color
-		for (int i = 0; i < 8; i++) {
-			for (int j = 0; j < 8; j++) {
-				if (squares[i][j].Contains() != null) {
-					if (squares[i][j].Contains().GetColor() != color) {
-						if (squares[i][j].Contains().CanMoveTo(squares[ki][kj]))
+		// Then check all the squares surrounding the king
+
+		for (int i = -2; i < 3; i++)
+			for (int j = -2; j < 3; j++)
+				if (!(ki + i < 0 || ki + i > 7 || kj + j < 0 || kj + j > 7))
+					if (squares[ki + i][kj + j].Contains() != null)
+						if (squares[ki + i][kj + j].Contains().GetColor() != color)
+							if (squares[ki + i][kj + j].Contains().CanMoveTo(
+									squares[ki][kj]))
+								return true;
+
+		// Check the diagonals and straight lanes
+		Square tmp = squares[ki][kj];
+		for (int dir = 0; dir < 8; dir++) {
+			tmp = squares[ki][kj].GetNeighbor(dir);
+			while (tmp != null) {
+				if (tmp.Contains() != null)
+					if (tmp.Contains().GetColor() != color) {
+						if (tmp.Contains().CanMoveTo(squares[ki][kj])) {
 							return true;
-					}
+						}
+					} else
+						tmp = null;
+
+				if (tmp != null) {
+					tmp = tmp.GetNeighbor(dir);
 				}
 			}
 		}
+
 		return false;
+	}
+
+	public ViewBoard GetViewBoard() {
+		return viewBoard;
 	}
 
 	public BoardPiece.Color GetPlayer() {

@@ -24,10 +24,17 @@ public class Knight extends BoardPiece {
 		int x2 = square.GetX();
 		int y2 = square.GetY();
 
-		if (Math.abs(x2 - x) == 1 && Math.abs(y2 - y) == 2)
-			return true;
-		else if (Math.abs(y2 - y) == 1 & Math.abs(x2 - x) == 2)
-			return true;
+		if (Math.abs(x2 - x) == 1 && Math.abs(y2 - y) == 2) {
+			if (square.Contains() != null)
+				if (square.Contains().GetColor() == this.color)
+					return false;
+			return this.CheckMoveForCheck(square);
+		} else if (Math.abs(y2 - y) == 1 & Math.abs(x2 - x) == 2) {
+			if (square.Contains() != null)
+				if (square.Contains().GetColor() == this.color)
+					return false;
+			return this.CheckMoveForCheck(square);
+		}
 		return false;
 	}
 }

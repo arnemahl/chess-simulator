@@ -24,28 +24,52 @@ public class Pawn extends BoardPiece {
 		int x2 = square.GetX();
 		int y2 = square.GetY();
 
+		if (square.Contains() != null)
+			if (square.Contains().GetColor() == this.color)
+				return false;
+
 		if (this.color == BoardPiece.Color.white) {
 			if (x2 == x) {
-				if (y == 6 && y2 < 6 && y2 > 3)
-					return true;
-				else if(y2==y-1)
-					return true;
+				if (y - y2 == 1) {
+					if (square.Contains() != null)
+						return false;
+					return this.CheckMoveForCheck(square);
+				}
+				if (y == 6 && y2 == 4) {
+					if (this.location.GetNeighbor(1).Contains() != null)
+						return false;
+					if (square.Contains() != null)
+						return false;
+					return this.CheckMoveForCheck(square);
+				} else if (y2 == y - 1) {
+					if (square.Contains() != null)
+						return false;
+					return this.CheckMoveForCheck(square);
+				}
 			} else if (y2 == y - 1 && Math.abs(x2 - x) == 1) {
 				if (square.Contains() != null) {
 					if (square.Contains().GetColor() != this.color)
-						return true;
+						return this.CheckMoveForCheck(square);
 				}
 			}
 		} else if (this.color == BoardPiece.Color.black) {
 			if (x2 == x) {
-				if (y == 1 && y2 < 4 && y2 > 1)
-					return true;
-				else if(y2==y+1)
-					return true;
+				if (y2 - y == 1) {
+					if (square.Contains() != null)
+						return false;
+					return this.CheckMoveForCheck(square);
+				}
+				if (y == 1 && y2 == 3) {
+					if (this.location.GetNeighbor(6).Contains() != null)
+						return false;
+					if (square.Contains() != null)
+						return false;
+					return this.CheckMoveForCheck(square);
+				}
 			} else if (y2 == y + 1 && Math.abs(x2 - x) == 1) {
 				if (square.Contains() != null) {
 					if (square.Contains().GetColor() != this.color)
-						return true;
+						return this.CheckMoveForCheck(square);
 				}
 			}
 		}

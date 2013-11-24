@@ -23,12 +23,14 @@ public class Bishop extends BoardPiece {
 		int y = this.location.GetY();
 		int x2 = square.GetX();
 		int y2 = square.GetY();
-		
+		if (square.Contains() != null)
+			if (square.Contains().GetColor() == this.color)
+				return false;
 		if (x == x2)
 			return false;
 		if (Math.abs(x2 - x) == Math.abs(y2 - y)) {
 			int dir = -1;
-			int length = Math.abs(x2-x);
+			int length = Math.abs(x2 - x);
 			Square tmp = this.location;
 			if (x2 < x) {
 				if (y2 < y)
@@ -41,20 +43,19 @@ public class Bishop extends BoardPiece {
 				else
 					dir = 7;
 			}
-			for(int i=0;i<length;i++){
-				if(tmp.GetNeighbor(dir)==null){
-					System.out.println("No neighbor!");
+			for (int i = 0; i < length; i++) {
+				if (tmp.GetNeighbor(dir) == null) {
 					return false;
 				}
-					
-				if(tmp.GetNeighbor(dir).Contains()!=null){
-					System.out.println("Square is occupied!");
+				if (i + 1 == length) {
+					return this.CheckMoveForCheck(square);
+				}
+				if (tmp.GetNeighbor(dir).Contains() != null) {
 					return false;
 				}
-				tmp=tmp.GetNeighbor(dir);
+				tmp = tmp.GetNeighbor(dir);
 			}
-			System.out.println("Returning true");
-			return true;
+			return this.CheckMoveForCheck(square);
 		}
 		return false;
 	}
