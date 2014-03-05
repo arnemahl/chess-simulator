@@ -2,6 +2,7 @@ package board;
 
 import java.util.ArrayList;
 
+import menu.TopPanel;
 import pieces.Bishop;
 import pieces.BoardPiece;
 import pieces.King;
@@ -17,16 +18,15 @@ public class Board {
 	// the board. This is the a8 position in chess
 	private Square[][] squares;
 	private ViewBoard viewBoard;
+	private TopPanel topPanel;
 	private ArrayList<Code> moves;
 
 	private boolean inPlay;
 	private BoardPiece.Color player;
-	private BoardPiece.Color winner;
 
 	public Board() {
 		moves = new ArrayList<Code>();
 		player = BoardPiece.Color.white;
-		winner = null;
 		inPlay = false;
 
 		// Initialize all the squares 8*8
@@ -58,7 +58,6 @@ public class Board {
 	public void InitBoard() {
 		moves.clear();
 		player = BoardPiece.Color.white;
-		winner = null;
 		inPlay = true;
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 8; j++) {
@@ -108,34 +107,50 @@ public class Board {
 		viewBoard.InitBoard();
 	}
 
+	public boolean InPlay() {
+		return inPlay;
+	}
+	
+	// Used to print the board to the socket
+	public String PrintBoardSocket(){
+		String printing = "";
+		for (int j = 0; j < 8; j++) {
+			for (int i = 0; i < 8; i++) {
+				printing += (squares[i][j].toString());
+			}
+			printing += ",";
+		}
+		return printing;
+	}
+
 	// Used to check the program. This will print out the board
 	public void PrintBoard() {
 		String letter = null;
 		for (int j = 0; j < 8; j++) {
 			switch (j) {
 			case 0:
-				letter = "h";
+				letter = "8";
 				break;
 			case 1:
-				letter = "g";
+				letter = "7";
 				break;
 			case 2:
-				letter = "f";
+				letter = "6";
 				break;
 			case 3:
-				letter = "e";
+				letter = "5";
 				break;
 			case 4:
-				letter = "d";
+				letter = "4";
 				break;
 			case 5:
-				letter = "c";
+				letter = "3";
 				break;
 			case 6:
-				letter = "b";
+				letter = "2";
 				break;
 			case 7:
-				letter = "a";
+				letter = "1";
 				break;
 			}
 			System.out.print(letter + " ");
@@ -144,7 +159,7 @@ public class Board {
 			}
 			System.out.println("");
 		}
-		System.out.println("   1  2  3  4  5  6  7  8");
+		System.out.println("   a  b  c  d  e  f  g  h");
 	}
 
 	// Used to move the pieces. Takes a Code object as input. Returns true if
@@ -153,7 +168,6 @@ public class Board {
 		if (code.ValidCode()) {
 			if (Move(code.GetCoordinates())) {
 				moves.add(code);
-				this.NextPlayer();
 				Code prev = null;
 				Code now = null;
 				if (moves.size() > 1)
@@ -170,6 +184,12 @@ public class Board {
 	// Setting the viewBoard
 	public void SetViewBoard(ViewBoard vb) {
 		this.viewBoard = vb;
+	}
+
+	// Setting reference to topPanel
+	public void SetTopPanel(TopPanel tp) {
+		this.topPanel = tp;
+		tp.noGame();
 	}
 
 	// Used to move the pieces. Takes an int array as input. Returns true if the
@@ -196,7 +216,6 @@ public class Board {
 	 * thus ending the game (4)Check if the next person to make a move can
 	 * perform a move or not
 	 */
-
 	public void CheckBoard() {
 		// First check if a pawn is across the border
 		// If yes, turn it into a Queen (no option will be given)
@@ -264,47 +283,62 @@ public class Board {
 						}
 				}
 			}
-			// If we could not find a valid move for player we have a winner
-			if (winner) {
-				if (player == BoardPiece.Color.white)
-					this.winner = BoardPiece.Color.black;
-				else
-					this.winner = BoardPiece.Color.white;
-				this.inPlay = false;
-				return;
+		} else
+			winner = false;
+		// If we could not find a valid move for player we have a winner
+		if (winner) {
+			String winnerst = "";
+			if (player == BoardPiece.Color.white) {
+				winnerst = "black";
+			} else {
+				winnerst = "white";
 			}
-			// If we did not find a winner, lets check if it is draw
-			boolean draw = true;
-			if (!this.IsCheck(player)) {
-				// We already have the location of the king, we now check the
-				// exact same things, but this time our prior knowledge is that
-				// the king is not checked
-				for (int i = 0; i < 8; i++) {
-					if (king.GetLocation().GetNeighbor(i) != null) {
-						if (king.CanMoveTo(king.GetLocation().GetNeighbor(i))) {
-							draw = false;
-						}
-					}
-				}
-				// Then check if there is any valid move with any piece of this
-				// color
-				for (int i = 0; i < 8; i++) {
-					for (int j = 0; j < 8; j++) {
-						if (squares[i][j].Contains() != null) {
-							if (squares[i][j].Contains().GetColor() == player) {
-								if (squares[i][j].Contains().CanMove())
-									draw = false;
-							}
-						}
+			this.inPlay = false;
+			topPanel.noGame();
+			topPanel.winner(winnerst);
+			return;
+		}
+		// If we did not find a winner, lets check if it is draw
+		boolean draw = true;
+		if (this.IsCheck(player))
+			draw = false;
+		if (!this.IsCheck(player)) {
+			// We already have the location of the king, we now check the
+			// exact same things, but this time our prior knowledge is that
+			// the king is not checked
+			for (int i = 0; i < 8; i++) {
+				if (king.GetLocation().GetNeighbor(i) != null) {
+					if (king.CanMoveTo(king.GetLocation().GetNeighbor(i))) {
+						draw = false;
 					}
 				}
 			}
-			if (draw) {
-				this.inPlay = false;
-				this.winner = null;
-				return;
+			// Then check if there is any valid move with any piece of this
+			// color
+			for (int i = 0; i < 8; i++) {
+				for (int j = 0; j < 8; j++) {
+					if (squares[i][j].Contains() != null) {
+						if (squares[i][j].Contains().GetColor() == player) {
+							if (squares[i][j].Contains().CanMove())
+								draw = false;
+						}
+					}
+				}
 			}
 		}
+		if (draw) {
+			this.inPlay = false;
+			topPanel.noGame();
+			topPanel.winner("draw");
+			return;
+		}
+	}
+
+	// Returns the last move. Pawn needs it for checking if en passant
+	public Code GetLastMove() {
+		if (!moves.isEmpty())
+			return moves.get(moves.size() - 1);
+		return null;
 	}
 
 	// Checks if the given colors king is threatened
@@ -329,37 +363,35 @@ public class Board {
 				}
 			}
 		}
-
 		// Then check all the squares surrounding the king
-
 		for (int i = -2; i < 3; i++)
-			for (int j = -2; j < 3; j++)
-				if (!(ki + i < 0 || ki + i > 7 || kj + j < 0 || kj + j > 7))
-					if (squares[ki + i][kj + j].Contains() != null)
-						if (squares[ki + i][kj + j].Contains().GetColor() != color)
-							if (squares[ki + i][kj + j].Contains().CanMoveTo(
-									squares[ki][kj]))
-								return true;
-
+			for (int j = -2; j < 3; j++) {
+				if (!(i == 0 && j == 0)) {
+					if (!(ki + i < 0 || ki + i > 7 || kj + j < 0 || kj + j > 7))
+						if (squares[ki + i][kj + j].Contains() != null)
+							if (squares[ki + i][kj + j].Contains().GetColor() != color)
+								if (squares[ki + i][kj + j].Contains().CanGoTo(
+										squares[ki][kj]))
+									return true;
+				}
+			}
 		// Check the diagonals and straight lanes
 		Square tmp = squares[ki][kj];
 		for (int dir = 0; dir < 8; dir++) {
 			tmp = squares[ki][kj].GetNeighbor(dir);
 			while (tmp != null) {
-				if (tmp.Contains() != null)
+				if (tmp.Contains() != null) {
 					if (tmp.Contains().GetColor() != color) {
-						if (tmp.Contains().CanMoveTo(squares[ki][kj])) {
+						if (tmp.Contains().CanGoTo(squares[ki][kj]))
 							return true;
-						}
 					} else
 						tmp = null;
-
+				}
 				if (tmp != null) {
 					tmp = tmp.GetNeighbor(dir);
 				}
 			}
 		}
-
 		return false;
 	}
 
@@ -376,5 +408,6 @@ public class Board {
 			player = BoardPiece.Color.black;
 		else
 			player = BoardPiece.Color.white;
+		topPanel.nextPlayer();
 	}
 }

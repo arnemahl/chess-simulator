@@ -36,7 +36,7 @@ public abstract class BoardPiece {
 	}
 
 	// This method will check if the move causes check, then reverse the move
-	protected boolean CheckMoveForCheck(Square square) {
+	protected boolean MoveWithoutCheck(Square square) {
 		boolean retVal = false;
 		BoardPiece tmpPiece = square.Contains();
 		Square tmpSquare = this.location;
@@ -46,7 +46,6 @@ public abstract class BoardPiece {
 		this.PlaceTo(tmpSquare);
 		if (tmpPiece != null)
 			tmpPiece.PlaceTo(square);
-
 		return retVal;
 	}
 
@@ -62,7 +61,19 @@ public abstract class BoardPiece {
 	}
 
 	// This will check if this piece can move to the given square
-	public abstract boolean CanMoveTo(Square square);
+	public boolean CanMoveTo(Square square) {
+		if (this.location.GetX() == square.GetX()
+				&& this.location.GetY() == square.GetY()) {
+			return false;
+		}
+		if (this.CanGoTo(square)) {
+			return this.MoveWithoutCheck(square);
+		}
+		return false;
+	}
+
+	// This will check if this piece can go to, regardless of check
+	public abstract boolean CanGoTo(Square square);
 
 	// This will check if the piece can move at all by performing a series of
 	// CanMoveTo operations

@@ -84,6 +84,17 @@ public class ViewBoard extends JPanel {
 			}
 		}
 	}
+	
+	public void enableMove(){
+		for(int i=0;i<8;i++)
+			for(int j=0;j<8;j++)
+				this.squares[i][j].enableMove();
+	}
+	public void disableMove(){
+		for(int i=0;i<8;i++)
+			for(int j=0;j<8;j++)
+				this.squares[i][j].disableMove();
+	}
 
 	public void Move(int coordinates[]) {
 		if (clickedPanel != null)
@@ -143,15 +154,24 @@ public class ViewBoard extends JPanel {
 		coordinates[3] = to[1];
 		if (board.Move(c)) {
 			this.Move(coordinates);
-			board.PrintBoard();
+			board.NextPlayer();
 		}
+	}
+	public boolean TryToMoveAlgo(Code code){
+		if(code.ValidCode()){
+			if (board.Move(code)) {
+				this.Move(code.GetCoordinates());
+				board.NextPlayer();
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void MakeQueen(int x, int y) {
 		if (squares[x][y].Contains() == null) {
 			return;
 		}
-		System.out.println("Will make queen!");
 		if (y == 0)
 			squares[x][y].SetContent(new ViewPiece("bin/Resources/wQ.png"));
 		if (y == 7)

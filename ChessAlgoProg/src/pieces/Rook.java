@@ -18,7 +18,7 @@ public class Rook extends BoardPiece {
 	}
 
 	@Override
-	public boolean CanMoveTo(Square square) {
+	public boolean CanGoTo(Square square) {
 		int x = this.location.GetX();
 		int y = this.location.GetY();
 		int x2 = square.GetX();
@@ -54,7 +54,7 @@ public class Rook extends BoardPiece {
 				return false;
 			}
 			if (i + 1 == length) {
-				return this.CheckMoveForCheck(square);
+				return true;
 			}
 			if (tmp.GetNeighbor(dir).Contains() != null) {
 				return false;

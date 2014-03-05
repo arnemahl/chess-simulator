@@ -19,9 +19,11 @@ public class ViewSquare extends JPanel implements MouseListener {
 	private Square square;
 	private boolean clicked;
 	private boolean highLight;
+	private boolean enabled;
 
 	public ViewSquare(ViewBoard vb, int x, int y) {
 		super(new BorderLayout());
+		enabled = true;
 		clicked = false;
 		highLight = false;
 		this.viewBoard = vb;
@@ -31,6 +33,13 @@ public class ViewSquare extends JPanel implements MouseListener {
 		square = viewBoard.GetBoard().GetSquare(x, y);
 
 		this.addMouseListener(this);
+	}
+
+	public void disableMove(){
+		this.enabled = false;
+	}
+	public void enableMove(){
+		this.enabled = true;
 	}
 
 	public void SetClicked(boolean bool) {
@@ -102,7 +111,8 @@ public class ViewSquare extends JPanel implements MouseListener {
 
 	@Override
 	public void mouseReleased(MouseEvent me) {
-		this.PerformeMouseClick(me);
+		if(enabled)
+			this.PerformeMouseClick(me);
 	}
 
 	@Override
@@ -111,6 +121,8 @@ public class ViewSquare extends JPanel implements MouseListener {
 	}
 
 	protected void PerformeMouseClick(MouseEvent me) {
+		if(!viewBoard.GetBoard().InPlay())
+			return;
 		if (!viewBoard.IsClicked())
 			if (square.Contains() != null) {
 				if (square.Contains().GetColor() != viewBoard.GetBoard()

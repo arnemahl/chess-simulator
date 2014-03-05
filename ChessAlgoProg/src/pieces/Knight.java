@@ -18,7 +18,7 @@ public class Knight extends BoardPiece {
 	}
 
 	@Override
-	public boolean CanMoveTo(Square square) {
+	public boolean CanGoTo(Square square) {
 		int x = this.location.GetX();
 		int y = this.location.GetY();
 		int x2 = square.GetX();
@@ -28,12 +28,12 @@ public class Knight extends BoardPiece {
 			if (square.Contains() != null)
 				if (square.Contains().GetColor() == this.color)
 					return false;
-			return this.CheckMoveForCheck(square);
+			return true;
 		} else if (Math.abs(y2 - y) == 1 & Math.abs(x2 - x) == 2) {
 			if (square.Contains() != null)
 				if (square.Contains().GetColor() == this.color)
 					return false;
-			return this.CheckMoveForCheck(square);
+			return true;
 		}
 		return false;
 	}

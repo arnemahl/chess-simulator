@@ -63,18 +63,20 @@ public class King extends BoardPiece {
 	}
 
 	@Override
-	public boolean CanMoveTo(Square square) {
+	public boolean CanGoTo(Square square) {
 		int x = this.location.GetX();
 		int y = this.location.GetY();
 		int x2 = square.GetX();
 		int y2 = square.GetY();
 		if (x == x2 && y == y2)
 			return false;
+		if(Math.abs(x-x2)>3||Math.abs(y-y2)>2)
+			return false;
 		if (x > x2 - 2 && x < x2 + 2 && y > y2 - 2 && y < y2 + 2) {
 			if (square.Contains() != null)
 				if (square.Contains().GetColor() == this.color)
 					return false;
-			return this.CheckMoveForCheck(square);
+			return true;
 		}
 		// Rocade
 		if(this.HasMoved())
@@ -88,13 +90,13 @@ public class King extends BoardPiece {
 						return false;
 					if (this.location.GetNeighbor(4).Contains() != null)
 						return false;
-					if (!this.CheckMoveForCheck(location.GetNeighbor(4)))
+					if (!this.MoveWithoutCheck(location.GetNeighbor(4)))
 						return false;
 					if (this.location.GetNeighbor(4).GetNeighbor(4) == null)
 						return false;
 					if (this.location.GetNeighbor(4).GetNeighbor(4).Contains() != null)
 						return false;
-					if (!this.CheckMoveForCheck(location.GetNeighbor(4)
+					if (!this.MoveWithoutCheck(location.GetNeighbor(4)
 							.GetNeighbor(4)))
 						return false;
 					if (this.location.GetNeighbor(4).GetNeighbor(4)
@@ -113,13 +115,13 @@ public class King extends BoardPiece {
 						return false;
 					if (this.location.GetNeighbor(3).Contains() != null)
 						return false;
-					if (!this.CheckMoveForCheck(location.GetNeighbor(3)))
+					if (!this.MoveWithoutCheck(location.GetNeighbor(3)))
 						return false;
 					if (this.location.GetNeighbor(3).GetNeighbor(3) == null)
 						return false;
 					if (this.location.GetNeighbor(3).GetNeighbor(3).Contains() != null)
 						return false;
-					if (!this.CheckMoveForCheck(location.GetNeighbor(3)
+					if (!this.MoveWithoutCheck(location.GetNeighbor(3)
 							.GetNeighbor(3)))
 						return false;
 					if (this.location.GetNeighbor(3).GetNeighbor(3)
@@ -136,11 +138,9 @@ public class King extends BoardPiece {
 							.GetNeighbor(3).GetNeighbor(3).Contains().HasMoved())
 						return false;
 					return true;
-					
 				}
 			}
 		}
-
 		return false;
 	}
 }
